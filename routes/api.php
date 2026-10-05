@@ -1,11 +1,13 @@
 <?php
 
 use App\Http\Controllers\Api\VacancyController;
+use App\Http\Controllers\Api\StatisticsController;
 use Illuminate\Support\Facades\Route;
 
 // Публичные endpoints (доступны всем)
 Route::get('/vacancies', [VacancyController::class, 'index']);
 Route::get('/vacancies/{vacancy}', [VacancyController::class, 'show']);
+Route::get('/statistics', [StatisticsController::class, 'index']);  // ← ДОБАВЛЕНО
 
 // Защищённые endpoints (требуется API токен)
 Route::middleware('auth:sanctum')->group(function () {
