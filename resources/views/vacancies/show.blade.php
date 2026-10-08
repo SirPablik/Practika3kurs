@@ -24,9 +24,9 @@
             <h1 class="text-3xl font-bold text-gray-800">{{ $vacancy->title }}</h1>
             
             <div class="flex flex-wrap gap-4 mt-4 text-sm text-gray-600">
-                <span>🏢 {{ $vacancy->employer->company_name ?? 'Компания не указана' }}</span>
-                <span>📍 {{ $vacancy->city }}</span>
-                <span>📅 {{ $vacancy->published_at->format('d.m.Y') }}</span>
+                <span> {{ $vacancy->employer->company_name ?? 'Компания не указана' }}</span>
+                <span> {{ $vacancy->city }}</span>
+                <span> {{ $vacancy->published_at->format('d.m.Y') }}</span>
             </div>
 
             <!-- Зарплата -->
