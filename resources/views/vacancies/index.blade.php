@@ -53,7 +53,7 @@
         <!-- Кнопка -->
         <div class="flex items-end">
             <button type="submit" class="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
-                🔍 Найти
+                 Найти
             </button>
         </div>
     </form>
@@ -117,7 +117,7 @@
                             <div class="text-lg font-bold text-green-600">
                                 {{ number_format($vacancy->salary_min) }} - {{ number_format($vacancy->salary_max) }} ₽
                             </div>
-                            <div class="text-sm text-gray-500">📍 {{ $vacancy->city }}</div>
+                            <div class="text-sm text-gray-500"> {{ $vacancy->city }}</div>
                         </div>
                     </div>
                     
