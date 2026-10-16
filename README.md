@@ -1,58 +1,248 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# СТАЖОК — проверка и агрегация IT-вакансий
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Веб-приложение на Laravel, которое собирает IT-вакансии из внешних источников (API и RSS), проводит их через модерацию и отдаёт пользователям через сайт и публичный REST API.
 
-## About Laravel
+> Учебный проект (практика, 3 курс, ИРКПО).
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Возможности
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- **Каталог вакансий** с фильтрами по городу, минимальной зарплате и тегам (технологиям).
+- **Парсеры источников:** Open Data API «Работа России» (trudvsem.ru) и RSS-ленты (например, Habr Career).
+- **Дедупликация** вакансий по хешу (`dedup_hash`).
+- **Модерация:** вакансии из парсеров и от работодателей попадают в очередь и публикуются только после одобрения.
+- **Роли:** соискатель, работодатель, администратор.
+- **Личный кабинет:** профиль, смена пароля, избранные вакансии.
+- **REST API** с токенами Laravel Sanctum (создание вакансий работодателем).
+- **Статистика:** количество вакансий, тегов, активных источников, средняя зарплата.
+- **Email-уведомления** (шаблон `NewVacancyMail`, тестовая почта через Mailpit).
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Стек
 
-## Learning Laravel
+| Компонент | Технология |
+|---|---|
+| Backend | PHP 8.3+ (в Docker — 8.4), Laravel 13 |
+| База данных | PostgreSQL 15 (jsonb, GIN-индексы) |
+| Кэш / очереди | Redis, database-драйверы |
+| Авторизация API | Laravel Sanctum |
+| Frontend | Blade, Vite, Tailwind CSS 4 |
+| Почта (dev) | Mailpit |
+| Окружение | Docker Compose |
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## Быстрый старт (Docker)
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### Требования
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+- Docker и Docker Compose
+- Git
 
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+### 1. Клонирование
 
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+git clone https://github.com/SirPablik/Practika3kurs.git
+cd Practika3kurs
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+### 2. Настройка `.env`
 
-## Contributing
+```bash
+cp .env.example .env
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+В `.env.example` по умолчанию указан SQLite. Для работы в Docker замените блоки БД, Redis и почты:
 
-## Code of Conduct
+```env
+APP_URL=http://localhost
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+DB_CONNECTION=pgsql
+DB_HOST=pgsql
+DB_PORT=5432
+DB_DATABASE=stagok
+DB_USERNAME=sail
+DB_PASSWORD=password
 
-## Security Vulnerabilities
+REDIS_HOST=redis
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+MAIL_MAILER=smtp
+MAIL_HOST=mailpit
+MAIL_PORT=1025
+```
 
-## License
+Переменные `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD` используются и контейнером PostgreSQL при первом создании базы.
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+### 3. Запуск контейнеров
+
+```bash
+docker-compose up -d --build
+```
+
+Поднимутся контейнеры `laravel.test` (приложение, порт 80), `pgsql` (5432), `redis` (6379) и `mailpit` (SMTP 1025, веб-интерфейс 8025).
+
+### 4. Зависимости и ключ приложения
+
+Если при открытии сайта появляется ошибка `vendor/autoload.php not found`, установите зависимости (занимает 2–5 минут):
+
+```bash
+docker-compose run --rm laravel.test composer install
+docker-compose exec laravel.test php artisan key:generate
+```
+
+### 5. Миграции и тестовые данные
+
+```bash
+docker-compose exec laravel.test php artisan migrate
+docker-compose exec laravel.test php artisan db:seed
+```
+
+Сидеры создают роли, 10 тегов, 3 источника, 8 тестовых вакансий и двух пользователей:
+
+| Роль | Email | Пароль |
+|---|---|---|
+| Работодатель | `employer@test.com` | `password` |
+| Администратор | `admin@test.com` | `password` |
+
+### 6. (Опционально) Сборка фронтенда
+
+```bash
+npm install
+npm run build
+```
+
+### 7. Проверка
+
+| URL | Что должно открыться |
+|---|---|
+| http://localhost | Главная, список вакансий |
+| http://localhost/api/vacancies | JSON со списком вакансий |
+| http://localhost/api/statistics | JSON со статистикой |
+| http://localhost/admin/moderation | Очередь модерации (нужна авторизация) |
+| http://localhost:8025 | Mailpit — перехваченные письма |
+
+## Локальный запуск без Docker
+
+Требуется PHP 8.3+, Composer, Node.js и PostgreSQL (либо оставить SQLite из `.env.example`).
+
+```bash
+composer setup        # install, .env, key:generate, migrate, npm install, build
+php artisan db:seed
+composer dev          # dev-сервер
+```
+
+## Консольные команды
+
+| Команда | Описание |
+|---|---|
+| `php artisan parse:trudvsem --search=Врач --limit=10` | Импорт вакансий из Open Data API trudvsem.ru |
+| `php artisan parse:rss --limit=5` | Импорт вакансий из активного RSS-источника |
+| `php artisan api:generate-token {email}` | Выпуск API-токена пользователю (показывается один раз) |
+
+Импортированные вакансии получают `is_moderated = false` и появляются на сайте только после одобрения в админке.
+
+## REST API
+
+Базовый префикс: `/api`. Ошибки для `/api/*` всегда возвращаются в JSON.
+
+### Публичные эндпоинты
+
+| Метод | URL | Описание |
+|---|---|---|
+| GET | `/api/vacancies` | Список одобренных вакансий, 20 на страницу |
+| GET | `/api/vacancies/{id}` | Детали вакансии |
+| GET | `/api/statistics` | Сводная статистика |
+
+Параметры фильтрации `/api/vacancies`:
+
+| Параметр | Пример | Смысл |
+|---|---|---|
+| `city` | `Иркутск` | Точное совпадение города |
+| `salary_min` | `100000` | Минимальная нижняя граница зарплаты |
+| `tags` | `1,2,5` | ID тегов через запятую |
+| `page` | `2` | Номер страницы |
+
+### Защищённые эндпоинты
+
+Требуют заголовок `Authorization: Bearer <token>`. Токен выдаёт команда `api:generate-token`.
+
+| Метод | URL | Описание |
+|---|---|---|
+| POST | `/api/vacancies` | Создание вакансии (только роль `employer`), уходит на модерацию |
+
+Пример:
+
+```bash
+curl -X POST http://localhost/api/vacancies \
+  -H "Authorization: Bearer <token>" \
+  -H "Accept: application/json" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Laravel Developer",
+    "description": "Разработка backend на Laravel",
+    "city": "Иркутск",
+    "salary_min": 120000,
+    "salary_max": 200000,
+    "tags": [1, 2]
+  }'
+```
+
+Ответ `201` содержит созданную вакансию и сообщение о том, что она ожидает модерации.
+
+## Страницы сайта
+
+| URL | Назначение |
+|---|---|
+| `/` | Каталог вакансий |
+| `/vacancies/{id}` | Страница вакансии |
+| `/about` | О проекте |
+| `/login`, `/register` | Вход и регистрация |
+| `/profile`, `/profile/edit` | Личный кабинет (после входа) |
+| `/admin/moderation` | Модерация вакансий (одобрить / отклонить с комментарием) |
+
+## База данных
+
+Основные таблицы (миграции в `database/migrations`, дамп в `database/schema.sql`):
+
+| Таблица | Назначение |
+|---|---|
+| `roles` | Роли: `seeker`, `employer`, `admin` |
+| `users` | Пользователи (`role_id`, `company_name`, `is_active`) |
+| `sources` | Источники вакансий (`type`: api / rss / html, `config` jsonb) |
+| `tags` | Технологии и их синонимы (`aliases` jsonb, GIN-индекс) |
+| `vacancies` | Вакансии: зарплата, город, `dedup_hash`, `is_moderated`, `moderation_comment` |
+| `vacancy_tag` | Связь вакансий и тегов (многие ко многим) |
+| `saved_vacancies` | Избранное пользователей |
+| `subscriptions` | Подписки на фильтры (`filters` jsonb, `last_notified_at`) |
+
+Служебные таблицы Laravel: `sessions`, `cache`, `jobs`, `personal_access_tokens`.
+
+## Структура проекта
+
+```
+app/
+  Console/Commands/     парсеры (ParseRssFeed, ParseTrudvsemApi), GenerateApiToken
+  Http/Controllers/     web-контроллеры; Api/, Admin/, Auth/
+  Http/Resources/       VacancyResource
+  Mail/                 NewVacancyMail
+  Models/               User, Role, Vacancy, Source, Tag, Subscription
+database/
+  migrations/ seeders/ schema.sql
+resources/views/        Blade-шаблоны (vacancies, auth, profile, admin, emails, about)
+routes/                 web.php, api.php, console.php
+docker-compose.yml      laravel.test, pgsql, redis, mailpit
+Dockerfile              PHP 8.4 + расширения PostgreSQL
+```
+
+## Тесты
+
+```bash
+docker-compose exec laravel.test composer test
+```
+
+## Известные ограничения
+
+- Маршруты `/admin/moderation` защищены только проверкой входа (`auth`), без проверки роли администратора.
+- Для источников без данных о зарплате парсеры подставляют случайные значения (`rand`), поэтому статистика зарплат для импортированных вакансий приблизительная.
+- Создание вакансии через API всегда привязывает её к источнику с `id = 1`.
+- Маршруты сохранения вакансий и подписок в API закомментированы и пока не реализованы.
+
+## Лицензия
+
+Проект построен на Laravel, распространяемом по лицензии [MIT](https://opensource.org/licenses/MIT).
