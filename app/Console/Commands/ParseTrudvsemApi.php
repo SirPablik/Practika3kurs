@@ -116,11 +116,10 @@ class ParseTrudvsemApi extends Command
     {
         if (empty($text)) return '';
         
-        // Жёсткая очистка: оставляем только безопасные символы
         $text = iconv('UTF-8', 'ASCII//IGNORE', $text) ?: '';
         
         if (empty($text)) {
-            // Если ASCII пустой — пробуем оставить только буквы и цифры
+          
             $text = preg_replace('/[^\p{L}\p{N}\s\-\,\.\:\(\)]/u', '', $text);
         }
         
