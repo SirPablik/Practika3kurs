@@ -230,12 +230,6 @@ docker-compose.yml      laravel.test, pgsql, redis, mailpit
 Dockerfile              PHP 8.4 + расширения PostgreSQL
 ```
 
-## Тесты
-
-```bash
-docker-compose exec laravel.test composer test
-```
-
 ## Известные ограничения
 
 - Маршруты `/admin/moderation` защищены только проверкой входа (`auth`), без проверки роли администратора.
