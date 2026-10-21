@@ -9,6 +9,7 @@ class VacancyController extends Controller
 {
     public function index(Request $request)
 {
+    
     $query = Vacancy::with('tags')
         ->where('is_moderated', true);
 
@@ -33,6 +34,12 @@ class VacancyController extends Controller
     $vacancies->appends($request->only('search', 'city', 'salary_min'));
 
     return view('vacancies.index', compact('vacancies'));
+    // Фильтр по тегу
+if ($request->filled('tag')) {
+    $query->whereHas('tags', function ($q) use ($request) {
+        $q->where('id', $request->tag);
+    });
+}
 }
 
     public function show(Vacancy $vacancy)
@@ -40,4 +47,6 @@ class VacancyController extends Controller
         $vacancy->load('tags','employer');
         return view('vacancies.show',compact('vacancy'));
     }
+    
+    
 }
